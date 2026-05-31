@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   AnimatePresence,
   motion,
@@ -8,27 +8,9 @@ import {
   useSpring,
   type PanInfo,
 } from "framer-motion";
-import matchaImg from "@/assets/cup-matcha.png";
-import yuzuImg from "@/assets/cup-yuzu.png";
-import sakuraImg from "@/assets/cup-sakura.png";
-import hojichaImg from "@/assets/cup-hojicha.png";
-import ubeImg from "@/assets/cup-ube.png";
+import { FLAVORS, type Flavor } from "@/data/flavors";
 
-type Flavor = {
-  id: string;
-  name: string;
-  jp: string;
-  tagline: string;
-  description: string;
-  price: string;
-  image: string;
-  glow: string;
-  bgFrom: string;
-  bgTo: string;
-  accent: string;
-};
-
-const FLAVORS: Flavor[] = [
+const _unused: Flavor[] = [
   {
     id: "matcha",
     name: "Matcha",

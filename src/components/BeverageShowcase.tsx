@@ -90,8 +90,12 @@ export default function BeverageShowcase() {
 
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-background">
-      {/* Atmospheric background */}
+    <div
+      ref={stageRef}
+      className="relative min-h-screen w-full overflow-hidden bg-background"
+      style={{ perspective: 1400 }}
+    >
+      {/* Atmospheric background (deepest layer, drifts slowest) */}
       <AnimatePresence mode="sync">
         <motion.div
           key={current.id + "-bg"}
@@ -102,6 +106,9 @@ export default function BeverageShowcase() {
           className="absolute inset-0"
           style={{
             background: `radial-gradient(120% 80% at 50% 40%, ${current.bgTo} 0%, ${current.bgFrom} 55%, #07140d 100%)`,
+            x: bgX,
+            y: bgY,
+            scale: 1.06,
           }}
         />
       </AnimatePresence>
@@ -124,20 +131,43 @@ export default function BeverageShowcase() {
         dragElastic={0.18}
         dragConstraints={{ left: 0, right: 0 }}
         onDragEnd={onDragEnd}
-        style={{ touchAction: "pan-y" }}
+        style={{ touchAction: "pan-y", transformStyle: "preserve-3d" }}
       >
         {/* Stage center */}
-        <div className="relative flex h-[58vh] w-full max-w-2xl items-center justify-center md:h-[62vh]">
-          {/* Orbiting flavor cards */}
-          <FlavorOrbit
-            activeIndex={index}
-            count={count}
-            onSelect={select}
-          />
+        <motion.div
+          className="relative flex h-[58vh] w-full max-w-2xl items-center justify-center md:h-[62vh]"
+          style={{ transformStyle: "preserve-3d" }}
+        >
+          {/* Orbiting flavor cards (mid layer) */}
+          <motion.div
+            className="absolute inset-0"
+            style={{
+              rotateY: orbitRotY,
+              rotateX: orbitRotX,
+              transformStyle: "preserve-3d",
+            }}
+          >
+            <FlavorOrbit
+              activeIndex={index}
+              count={count}
+              onSelect={select}
+              parallaxX={spx}
+              parallaxY={spy}
+            />
+          </motion.div>
 
-          {/* Center cup */}
-          <div className="relative z-20 pointer-events-none">
-            {/* Glow halo */}
+          {/* Center cup (top layer, biggest parallax) */}
+          <motion.div
+            className="relative z-20 pointer-events-none"
+            style={{
+              x: cupX,
+              y: cupY,
+              rotateY: cupRotY,
+              rotateX: cupRotX,
+              transformStyle: "preserve-3d",
+            }}
+          >
+            {/* Glow halo — drifts opposite for depth */}
             <motion.div
               key={current.id + "-glow"}
               initial={{ opacity: 0, scale: 0.9 }}
@@ -147,6 +177,8 @@ export default function BeverageShowcase() {
               style={{
                 background: `radial-gradient(circle, ${current.glow} 0%, transparent 65%)`,
                 filter: "blur(30px)",
+                x: haloX,
+                y: haloY,
               }}
             />
             <AnimatePresence mode="wait">
@@ -181,8 +213,9 @@ export default function BeverageShowcase() {
                 filter: "blur(10px)",
               }}
             />
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
+
 
         {/* Name + description */}
         <div className="relative z-20 mt-2 flex flex-col items-center px-6 text-center md:mt-4">

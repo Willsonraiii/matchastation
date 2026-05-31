@@ -4,16 +4,16 @@ import BeverageShowcase from "@/components/BeverageShowcase";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Akari — Premium Japanese Beverages" },
+      { title: "Matcha Station — Iced Matcha Flavor Bar" },
       {
         name: "description",
         content:
-          "An interactive showcase of Akari's ceremonial Japanese drinks — matcha, yuzu, sakura, hojicha, ube.",
+          "Pick your matcha: Matcha Latte, Strawberry, Blueberry, or Mango. An interactive iced matcha flavor selector.",
       },
-      { property: "og:title", content: "Akari — Premium Japanese Beverages" },
+      { property: "og:title", content: "Matcha Station — Iced Matcha Flavor Bar" },
       {
         property: "og:description",
-        content: "Interactive product experience for Akari's craft drinks.",
+        content: "Tap a flavor to switch your iced matcha — strawberry, blueberry, mango, or classic.",
       },
     ],
     links: [

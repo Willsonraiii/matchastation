@@ -1,5 +1,13 @@
-import { useEffect, useState } from "react";
-import { AnimatePresence, motion, type PanInfo } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import {
+  AnimatePresence,
+  motion,
+  useMotionValue,
+  useSpring,
+  useTransform,
+  type PanInfo,
+  type MotionValue,
+} from "framer-motion";
 import { FLAVORS, type Flavor } from "@/data/flavors";
 import ingMatcha from "@/assets/ing-matcha.png";
 import ingStrawberry from "@/assets/ing-strawberry.png";
@@ -37,9 +45,57 @@ export default function BeverageShowcase() {
     else if (info.offset.x > threshold || info.velocity.x > 400) select(index - 1);
   };
 
+  // ───── 3D parallax — track pointer/touch as a -1..1 vector ─────
+  const stageRef = useRef<HTMLDivElement>(null);
+  const px = useMotionValue(0); // -1..1
+  const py = useMotionValue(0);
+  const spx = useSpring(px, { stiffness: 80, damping: 18, mass: 0.6 });
+  const spy = useSpring(py, { stiffness: 80, damping: 18, mass: 0.6 });
+
+  useEffect(() => {
+    const el = stageRef.current;
+    if (!el) return;
+    const update = (cx: number, cy: number) => {
+      const r = el.getBoundingClientRect();
+      const nx = ((cx - r.left) / r.width) * 2 - 1;
+      const ny = ((cy - r.top) / r.height) * 2 - 1;
+      px.set(Math.max(-1, Math.min(1, nx)));
+      py.set(Math.max(-1, Math.min(1, ny)));
+    };
+    const onMove = (e: PointerEvent) => update(e.clientX, e.clientY);
+    const onLeave = () => {
+      px.set(0);
+      py.set(0);
+    };
+    el.addEventListener("pointermove", onMove);
+    el.addEventListener("pointerleave", onLeave);
+    return () => {
+      el.removeEventListener("pointermove", onMove);
+      el.removeEventListener("pointerleave", onLeave);
+    };
+  }, [px, py]);
+
+  // Layered parallax outputs — different depths move different amounts
+  const bgX = useTransform(spx, [-1, 1], [12, -12]);
+  const bgY = useTransform(spy, [-1, 1], [10, -10]);
+  const haloX = useTransform(spx, [-1, 1], [-18, 18]);
+  const haloY = useTransform(spy, [-1, 1], [-14, 14]);
+  const cupX = useTransform(spx, [-1, 1], [-26, 26]);
+  const cupY = useTransform(spy, [-1, 1], [-20, 20]);
+  const cupRotY = useTransform(spx, [-1, 1], [8, -8]);
+  const cupRotX = useTransform(spy, [-1, 1], [-6, 6]);
+  const orbitRotY = useTransform(spx, [-1, 1], [12, -12]);
+  const orbitRotX = useTransform(spy, [-1, 1], [-8, 8]);
+  const textX = useTransform(spx, [-1, 1], [-8, 8]);
+
+
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-background">
-      {/* Atmospheric background */}
+    <div
+      ref={stageRef}
+      className="relative min-h-screen w-full overflow-hidden bg-background"
+      style={{ perspective: 1400 }}
+    >
+      {/* Atmospheric background (deepest layer, drifts slowest) */}
       <AnimatePresence mode="sync">
         <motion.div
           key={current.id + "-bg"}
@@ -50,6 +106,9 @@ export default function BeverageShowcase() {
           className="absolute inset-0"
           style={{
             background: `radial-gradient(120% 80% at 50% 40%, ${current.bgTo} 0%, ${current.bgFrom} 55%, #07140d 100%)`,
+            x: bgX,
+            y: bgY,
+            scale: 1.06,
           }}
         />
       </AnimatePresence>
@@ -72,20 +131,43 @@ export default function BeverageShowcase() {
         dragElastic={0.18}
         dragConstraints={{ left: 0, right: 0 }}
         onDragEnd={onDragEnd}
-        style={{ touchAction: "pan-y" }}
+        style={{ touchAction: "pan-y", transformStyle: "preserve-3d" }}
       >
         {/* Stage center */}
-        <div className="relative flex h-[58vh] w-full max-w-2xl items-center justify-center md:h-[62vh]">
-          {/* Orbiting flavor cards */}
-          <FlavorOrbit
-            activeIndex={index}
-            count={count}
-            onSelect={select}
-          />
+        <motion.div
+          className="relative flex h-[58vh] w-full max-w-2xl items-center justify-center md:h-[62vh]"
+          style={{ transformStyle: "preserve-3d" }}
+        >
+          {/* Orbiting flavor cards (mid layer) */}
+          <motion.div
+            className="absolute inset-0"
+            style={{
+              rotateY: orbitRotY,
+              rotateX: orbitRotX,
+              transformStyle: "preserve-3d",
+            }}
+          >
+            <FlavorOrbit
+              activeIndex={index}
+              count={count}
+              onSelect={select}
+              parallaxX={spx}
+              parallaxY={spy}
+            />
+          </motion.div>
 
-          {/* Center cup */}
-          <div className="relative z-20 pointer-events-none">
-            {/* Glow halo */}
+          {/* Center cup (top layer, biggest parallax) */}
+          <motion.div
+            className="relative z-20 pointer-events-none"
+            style={{
+              x: cupX,
+              y: cupY,
+              rotateY: cupRotY,
+              rotateX: cupRotX,
+              transformStyle: "preserve-3d",
+            }}
+          >
+            {/* Glow halo — drifts opposite for depth */}
             <motion.div
               key={current.id + "-glow"}
               initial={{ opacity: 0, scale: 0.9 }}
@@ -95,6 +177,8 @@ export default function BeverageShowcase() {
               style={{
                 background: `radial-gradient(circle, ${current.glow} 0%, transparent 65%)`,
                 filter: "blur(30px)",
+                x: haloX,
+                y: haloY,
               }}
             />
             <AnimatePresence mode="wait">
@@ -129,11 +213,15 @@ export default function BeverageShowcase() {
                 filter: "blur(10px)",
               }}
             />
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
-        {/* Name + description */}
-        <div className="relative z-20 mt-2 flex flex-col items-center px-6 text-center md:mt-4">
+
+        {/* Name + description (subtle parallax, opposite direction) */}
+        <motion.div
+          className="relative z-20 mt-2 flex flex-col items-center px-6 text-center md:mt-4"
+          style={{ x: textX }}
+        >
           <AnimatePresence mode="wait">
             <motion.div
               key={current.id + "-name"}
@@ -169,7 +257,8 @@ export default function BeverageShowcase() {
               Add to Order
             </button>
           </div>
-        </div>
+        </motion.div>
+
 
         {/* Hint */}
         <div className="pointer-events-none mt-3 text-[10px] uppercase tracking-[0.4em] text-foreground/30">
@@ -186,10 +275,14 @@ function FlavorOrbit({
   activeIndex,
   count,
   onSelect,
+  parallaxX,
+  parallaxY,
 }: {
   activeIndex: number;
   count: number;
   onSelect: (i: number) => void;
+  parallaxX: MotionValue<number>;
+  parallaxY: MotionValue<number>;
 }) {
   // Responsive radius
   const [dims, setDims] = useState({ radiusX: 200, radiusY: 60, step: 32 });
@@ -206,7 +299,10 @@ function FlavorOrbit({
   }, []);
 
   return (
-    <div className="absolute inset-0 z-10 flex items-center justify-center">
+    <div
+      className="absolute inset-0 z-10 flex items-center justify-center"
+      style={{ transformStyle: "preserve-3d" }}
+    >
       {FLAVORS.map((f, i) => {
         // shortest signed offset from active
         let off = i - activeIndex;
@@ -228,12 +324,16 @@ function FlavorOrbit({
             isActive={isActive}
             depth={Math.abs(off)}
             onClick={() => onSelect(i)}
+            parallaxX={parallaxX}
+            parallaxY={parallaxY}
+            sideSign={off === 0 ? 0 : off > 0 ? 1 : -1}
           />
         );
       })}
     </div>
   );
 }
+
 
 function OrbitCard({
   flavor,
@@ -243,6 +343,9 @@ function OrbitCard({
   isActive,
   depth,
   onClick,
+  parallaxX,
+  parallaxY,
+  sideSign,
 }: {
   flavor: Flavor;
   x: number;
@@ -251,8 +354,16 @@ function OrbitCard({
   isActive: boolean;
   depth: number;
   onClick: () => void;
+  parallaxX: MotionValue<number>;
+  parallaxY: MotionValue<number>;
+  sideSign: number;
 }) {
   const ingredient = INGREDIENT[flavor.id];
+  // Per-card parallax — outer cards drift more; mirror across the active center
+  const driftMag = isActive ? 6 : 12 + depth * 4;
+  const cardPx = useTransform(parallaxX, [-1, 1], [-driftMag * sideSign * 0.4 - driftMag, driftMag + driftMag * sideSign * 0.4]);
+  const cardPy = useTransform(parallaxY, [-1, 1], [-driftMag * 0.7, driftMag * 0.7]);
+
   return (
     <motion.button
       onClick={onClick}
@@ -267,6 +378,7 @@ function OrbitCard({
       }}
       transition={{ type: "spring", stiffness: 180, damping: 22, mass: 0.7 }}
       whileTap={{ scale: isActive ? 1.08 : 0.95 }}
+      whileHover={{ scale: isActive ? 1.12 : 1 - depth * 0.06 + 0.05 }}
       className="absolute flex h-[78px] w-[78px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-2xl border backdrop-blur-md md:h-[110px] md:w-[110px]"
       style={{
         left: "50%",
@@ -279,16 +391,23 @@ function OrbitCard({
         boxShadow: isActive
           ? `0 18px 50px -15px ${flavor.glow}, 0 0 0 2px ${flavor.accent}30`
           : "0 10px 30px -15px rgba(0,0,0,0.6)",
+        transformStyle: "preserve-3d",
       }}
       aria-label={flavor.name}
     >
-      <img
-        src={ingredient}
-        alt={flavor.name}
-        draggable={false}
-        className="drag-none h-[70%] w-[70%] object-contain"
-        style={{ filter: "drop-shadow(0 6px 10px rgba(0,0,0,0.35))" }}
-      />
+      {/* Inner parallax wrapper — drifts independent of orbit transform */}
+      <motion.div
+        className="flex h-full w-full items-center justify-center"
+        style={{ x: cardPx, y: cardPy }}
+      >
+        <img
+          src={ingredient}
+          alt={flavor.name}
+          draggable={false}
+          className="drag-none h-[70%] w-[70%] object-contain"
+          style={{ filter: "drop-shadow(0 6px 10px rgba(0,0,0,0.35))" }}
+        />
+      </motion.div>
       {isActive && (
         <motion.span
           layoutId="orbit-active-dot"
@@ -302,3 +421,4 @@ function OrbitCard({
     </motion.button>
   );
 }
+

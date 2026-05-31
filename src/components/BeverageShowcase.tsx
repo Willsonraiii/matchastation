@@ -45,6 +45,50 @@ export default function BeverageShowcase() {
     else if (info.offset.x > threshold || info.velocity.x > 400) select(index - 1);
   };
 
+  // ───── 3D parallax — track pointer/touch as a -1..1 vector ─────
+  const stageRef = useRef<HTMLDivElement>(null);
+  const px = useMotionValue(0); // -1..1
+  const py = useMotionValue(0);
+  const spx = useSpring(px, { stiffness: 80, damping: 18, mass: 0.6 });
+  const spy = useSpring(py, { stiffness: 80, damping: 18, mass: 0.6 });
+
+  useEffect(() => {
+    const el = stageRef.current;
+    if (!el) return;
+    const update = (cx: number, cy: number) => {
+      const r = el.getBoundingClientRect();
+      const nx = ((cx - r.left) / r.width) * 2 - 1;
+      const ny = ((cy - r.top) / r.height) * 2 - 1;
+      px.set(Math.max(-1, Math.min(1, nx)));
+      py.set(Math.max(-1, Math.min(1, ny)));
+    };
+    const onMove = (e: PointerEvent) => update(e.clientX, e.clientY);
+    const onLeave = () => {
+      px.set(0);
+      py.set(0);
+    };
+    el.addEventListener("pointermove", onMove);
+    el.addEventListener("pointerleave", onLeave);
+    return () => {
+      el.removeEventListener("pointermove", onMove);
+      el.removeEventListener("pointerleave", onLeave);
+    };
+  }, [px, py]);
+
+  // Layered parallax outputs — different depths move different amounts
+  const bgX = useTransform(spx, [-1, 1], [12, -12]);
+  const bgY = useTransform(spy, [-1, 1], [10, -10]);
+  const haloX = useTransform(spx, [-1, 1], [-18, 18]);
+  const haloY = useTransform(spy, [-1, 1], [-14, 14]);
+  const cupX = useTransform(spx, [-1, 1], [-26, 26]);
+  const cupY = useTransform(spy, [-1, 1], [-20, 20]);
+  const cupRotY = useTransform(spx, [-1, 1], [8, -8]);
+  const cupRotX = useTransform(spy, [-1, 1], [-6, 6]);
+  const orbitRotY = useTransform(spx, [-1, 1], [12, -12]);
+  const orbitRotX = useTransform(spy, [-1, 1], [-8, 8]);
+  const textX = useTransform(spx, [-1, 1], [-8, 8]);
+
+
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-background">
       {/* Atmospheric background */}

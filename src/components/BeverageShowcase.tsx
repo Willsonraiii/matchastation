@@ -1,5 +1,13 @@
-import { useEffect, useState } from "react";
-import { AnimatePresence, motion, type PanInfo } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import {
+  AnimatePresence,
+  motion,
+  useMotionValue,
+  useSpring,
+  useTransform,
+  type PanInfo,
+  type MotionValue,
+} from "framer-motion";
 import { FLAVORS, type Flavor } from "@/data/flavors";
 import ingMatcha from "@/assets/ing-matcha.png";
 import ingStrawberry from "@/assets/ing-strawberry.png";

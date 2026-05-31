@@ -217,8 +217,11 @@ export default function BeverageShowcase() {
         </motion.div>
 
 
-        {/* Name + description */}
-        <div className="relative z-20 mt-2 flex flex-col items-center px-6 text-center md:mt-4">
+        {/* Name + description (subtle parallax, opposite direction) */}
+        <motion.div
+          className="relative z-20 mt-2 flex flex-col items-center px-6 text-center md:mt-4"
+          style={{ x: textX }}
+        >
           <AnimatePresence mode="wait">
             <motion.div
               key={current.id + "-name"}
@@ -254,7 +257,8 @@ export default function BeverageShowcase() {
               Add to Order
             </button>
           </div>
-        </div>
+        </motion.div>
+
 
         {/* Hint */}
         <div className="pointer-events-none mt-3 text-[10px] uppercase tracking-[0.4em] text-foreground/30">

@@ -275,10 +275,14 @@ function FlavorOrbit({
   activeIndex,
   count,
   onSelect,
+  parallaxX,
+  parallaxY,
 }: {
   activeIndex: number;
   count: number;
   onSelect: (i: number) => void;
+  parallaxX: MotionValue<number>;
+  parallaxY: MotionValue<number>;
 }) {
   // Responsive radius
   const [dims, setDims] = useState({ radiusX: 200, radiusY: 60, step: 32 });
@@ -295,7 +299,10 @@ function FlavorOrbit({
   }, []);
 
   return (
-    <div className="absolute inset-0 z-10 flex items-center justify-center">
+    <div
+      className="absolute inset-0 z-10 flex items-center justify-center"
+      style={{ transformStyle: "preserve-3d" }}
+    >
       {FLAVORS.map((f, i) => {
         // shortest signed offset from active
         let off = i - activeIndex;
@@ -317,12 +324,16 @@ function FlavorOrbit({
             isActive={isActive}
             depth={Math.abs(off)}
             onClick={() => onSelect(i)}
+            parallaxX={parallaxX}
+            parallaxY={parallaxY}
+            sideSign={off === 0 ? 0 : off > 0 ? 1 : -1}
           />
         );
       })}
     </div>
   );
 }
+
 
 function OrbitCard({
   flavor,

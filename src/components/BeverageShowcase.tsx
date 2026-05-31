@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   AnimatePresence,
   motion,
@@ -8,98 +8,8 @@ import {
   useSpring,
   type PanInfo,
 } from "framer-motion";
-import matchaImg from "@/assets/cup-matcha.png";
-import yuzuImg from "@/assets/cup-yuzu.png";
-import sakuraImg from "@/assets/cup-sakura.png";
-import hojichaImg from "@/assets/cup-hojicha.png";
-import ubeImg from "@/assets/cup-ube.png";
+import { FLAVORS, type Flavor } from "@/data/flavors";
 
-type Flavor = {
-  id: string;
-  name: string;
-  jp: string;
-  tagline: string;
-  description: string;
-  price: string;
-  image: string;
-  glow: string;
-  bgFrom: string;
-  bgTo: string;
-  accent: string;
-};
-
-const FLAVORS: Flavor[] = [
-  {
-    id: "matcha",
-    name: "Matcha",
-    jp: "抹茶",
-    tagline: "Stone-ground ceremonial",
-    description:
-      "Single-origin Uji leaves, stone-milled at dawn. A vegetal hush of umami, finished with cold oat cream.",
-    price: "¥820",
-    image: matchaImg,
-    glow: "rgba(120, 200, 110, 0.55)",
-    bgFrom: "#0d2418",
-    bgTo: "#1f4a2c",
-    accent: "#9ee8a4",
-  },
-  {
-    id: "yuzu",
-    name: "Yuzu",
-    jp: "柚子",
-    tagline: "Sun-kissed citrus",
-    description:
-      "Hand-zested Kōchi yuzu, sparkling spring water, a whisper of honey. Bright, electric, alive.",
-    price: "¥780",
-    image: yuzuImg,
-    glow: "rgba(255, 210, 90, 0.55)",
-    bgFrom: "#2a2410",
-    bgTo: "#5a4a18",
-    accent: "#ffe080",
-  },
-  {
-    id: "sakura",
-    name: "Sakura",
-    jp: "桜",
-    tagline: "Blossom infusion",
-    description:
-      "Salt-cured Yoshino petals steeped in spring milk. Floral, faintly almond, undeniably spring.",
-    price: "¥860",
-    image: sakuraImg,
-    glow: "rgba(255, 170, 200, 0.55)",
-    bgFrom: "#2a1620",
-    bgTo: "#5a2840",
-    accent: "#ffc0d6",
-  },
-  {
-    id: "hojicha",
-    name: "Hojicha",
-    jp: "焙じ茶",
-    tagline: "Roasted amber",
-    description:
-      "Charcoal-roasted Kyoto leaves. Toasted hazelnut, caramelized sugar, the warmth of a kettle at dusk.",
-    price: "¥740",
-    image: hojichaImg,
-    glow: "rgba(230, 140, 70, 0.55)",
-    bgFrom: "#2a1a10",
-    bgTo: "#5a2e16",
-    accent: "#ffba80",
-  },
-  {
-    id: "ube",
-    name: "Ube",
-    jp: "紫芋",
-    tagline: "Velvet root",
-    description:
-      "Purple yam slow-steamed with coconut cream. Earthy, silken, with a quiet vanilla finish.",
-    price: "¥880",
-    image: ubeImg,
-    glow: "rgba(180, 120, 255, 0.55)",
-    bgFrom: "#1c1030",
-    bgTo: "#3a1c5c",
-    accent: "#d8b4ff",
-  },
-];
 
 const STEP = 220; // px per flavor step
 const ORBIT_RADIUS = 260;

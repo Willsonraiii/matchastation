@@ -13,7 +13,7 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "Matcha Station — Iced Matcha Flavor Bar" },
       {
         property: "og:description",
-        content: "Interactive product experience for Akari's craft drinks.",
+        content: "Tap a flavor to switch your iced matcha — strawberry, blueberry, mango, or classic.",
       },
     ],
     links: [

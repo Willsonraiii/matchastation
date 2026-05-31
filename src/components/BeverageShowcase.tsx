@@ -1,30 +1,26 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion, type PanInfo } from "framer-motion";
 import { FLAVORS, type Flavor } from "@/data/flavors";
+import ingMatcha from "@/assets/ing-matcha.png";
+import ingStrawberry from "@/assets/ing-strawberry.png";
+import ingBlueberry from "@/assets/ing-blueberry.png";
+import ingMango from "@/assets/ing-mango.png";
 
-const LAYER_COLORS: Record<string, string> = {
-  matcha: "#7bbf5a",
-  milk: "#f5ecdc",
-  strawberry: "#e63956",
-  blueberry: "#5a2a8a",
-  mango: "#ffa634",
-};
-
-const LAYER_LABEL: Record<string, string> = {
-  matcha: "Ceremonial matcha",
-  milk: "Cold whole milk",
-  strawberry: "Strawberry compote",
-  blueberry: "Wild blueberry",
-  mango: "Alphonso mango",
+const INGREDIENT: Record<string, string> = {
+  "matcha-latte": ingMatcha,
+  "strawberry-matcha": ingStrawberry,
+  "blueberry-matcha": ingBlueberry,
+  "mango-matcha": ingMango,
 };
 
 const mod = (n: number, m: number) => ((n % m) + m) % m;
 
 export default function BeverageShowcase() {
   const [index, setIndex] = useState(0);
+  const count = FLAVORS.length;
   const current = FLAVORS[index];
 
-  const select = (i: number) => setIndex(mod(i, FLAVORS.length));
+  const select = (i: number) => setIndex(mod(i, count));
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -50,74 +46,55 @@ export default function BeverageShowcase() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 1.0, ease: "easeOut" }}
+          transition={{ duration: 0.9, ease: "easeOut" }}
           className="absolute inset-0"
           style={{
-            background: `radial-gradient(120% 80% at 50% 35%, ${current.bgTo} 0%, ${current.bgFrom} 55%, #07140d 100%)`,
+            background: `radial-gradient(120% 80% at 50% 40%, ${current.bgTo} 0%, ${current.bgFrom} 55%, #07140d 100%)`,
           }}
         />
       </AnimatePresence>
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_55%,rgba(0,0,0,0.6)_100%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_55%,rgba(0,0,0,0.65)_100%)]" />
 
       {/* Header */}
-      <header className="relative z-30 flex items-center justify-between px-6 pt-6 md:px-12 md:pt-8">
-        <div className="font-display text-xl tracking-[0.25em] text-foreground/90 md:text-2xl">
+      <header className="relative z-30 flex items-center justify-between px-5 pt-5 md:px-10 md:pt-7">
+        <div className="font-display text-lg tracking-[0.3em] text-foreground/90 md:text-xl">
           MATCHA<span className="opacity-50"> · </span>STATION
         </div>
-        <button className="rounded-full border border-foreground/20 px-4 py-2 text-[10px] uppercase tracking-[0.25em] text-foreground/80 transition hover:bg-foreground/10">
-          Order · 0
+        <button className="rounded-full border border-foreground/20 px-3.5 py-1.5 text-[10px] uppercase tracking-[0.25em] text-foreground/80 transition hover:bg-foreground/10">
+          Bag · 0
         </button>
       </header>
 
-      {/* Stage */}
-      <main className="relative z-10 mx-auto flex max-w-7xl flex-col items-center px-4 pt-4 md:pt-8">
-        {/* Flavor name */}
-        <div className="relative z-20 flex flex-col items-center text-center">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={current.id + "-name"}
-              initial={{ y: 18, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: -18, opacity: 0 }}
-              transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-              className="flex flex-col items-center"
-            >
-              <span className="text-[10px] uppercase tracking-[0.4em] text-foreground/50">
-                {current.tagline}
-              </span>
-              <h1 className="font-display text-5xl tracking-tight text-foreground md:text-7xl">
-                {current.name}
-              </h1>
-            </motion.div>
-          </AnimatePresence>
-        </div>
+      {/* Swipe surface — full main stage */}
+      <motion.main
+        className="relative z-10 flex h-[calc(100vh-72px)] w-full touch-pan-y select-none flex-col items-center justify-center"
+        drag="x"
+        dragElastic={0.18}
+        dragConstraints={{ left: 0, right: 0 }}
+        onDragEnd={onDragEnd}
+        style={{ touchAction: "pan-y" }}
+      >
+        {/* Stage center */}
+        <div className="relative flex h-[58vh] w-full max-w-2xl items-center justify-center md:h-[62vh]">
+          {/* Orbiting flavor cards */}
+          <FlavorOrbit
+            activeIndex={index}
+            count={count}
+            onSelect={select}
+          />
 
-        {/* Drink + layer legend */}
-        <motion.div
-          className="relative mt-2 flex w-full cursor-grab items-end justify-center active:cursor-grabbing md:mt-4"
-          drag="x"
-          dragElastic={0.15}
-          dragConstraints={{ left: 0, right: 0 }}
-          onDragEnd={onDragEnd}
-          style={{ touchAction: "pan-y" }}
-        >
-          {/* Layer legend (desktop left) */}
-          <div className="absolute left-2 top-1/2 hidden -translate-y-1/2 md:block">
-            <LayerLegend flavor={current} align="left" />
-          </div>
-
-          {/* The glass */}
-          <div className="relative">
+          {/* Center cup */}
+          <div className="relative z-20 pointer-events-none">
             {/* Glow halo */}
             <motion.div
               key={current.id + "-glow"}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6 }}
-              className="absolute left-1/2 top-1/2 -z-10 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+              className="absolute left-1/2 top-1/2 -z-10 h-[440px] w-[440px] -translate-x-1/2 -translate-y-1/2 rounded-full"
               style={{
                 background: `radial-gradient(circle, ${current.glow} 0%, transparent 65%)`,
-                filter: "blur(28px)",
+                filter: "blur(30px)",
               }}
             />
             <AnimatePresence mode="wait">
@@ -126,21 +103,21 @@ export default function BeverageShowcase() {
                 src={current.image}
                 alt={current.name}
                 draggable={false}
-                initial={{ y: 30, opacity: 0, scale: 0.96 }}
+                initial={{ y: 24, opacity: 0, scale: 0.94 }}
                 animate={{
                   y: [0, -10, 0],
                   opacity: 1,
                   scale: 1,
                 }}
-                exit={{ y: -20, opacity: 0, scale: 0.96 }}
+                exit={{ y: -18, opacity: 0, scale: 0.96 }}
                 transition={{
                   y: { duration: 5, repeat: Infinity, ease: "easeInOut" },
-                  opacity: { duration: 0.5 },
-                  scale: { duration: 0.5 },
+                  opacity: { duration: 0.45 },
+                  scale: { duration: 0.45 },
                 }}
-                className="drag-none h-[44vh] max-h-[520px] w-auto select-none object-contain md:h-[58vh]"
+                className="drag-none h-[46vh] max-h-[520px] w-auto object-contain md:h-[58vh]"
                 style={{
-                  filter: `drop-shadow(0 40px 50px rgba(0,0,0,0.55)) drop-shadow(0 0 30px ${current.glow})`,
+                  filter: `drop-shadow(0 40px 50px rgba(0,0,0,0.6)) drop-shadow(0 0 28px ${current.glow})`,
                 }}
               />
             </AnimatePresence>
@@ -148,169 +125,178 @@ export default function BeverageShowcase() {
             <div
               className="pointer-events-none absolute inset-x-0 -bottom-3 mx-auto h-10 w-[65%] rounded-[50%]"
               style={{
-                background: `radial-gradient(ellipse at center, rgba(0,0,0,0.55) 0%, transparent 70%)`,
+                background: `radial-gradient(ellipse at center, rgba(0,0,0,0.6) 0%, transparent 70%)`,
                 filter: "blur(10px)",
               }}
             />
           </div>
-
-          {/* Layer legend (mobile bottom-row) is rendered separately below */}
-        </motion.div>
-
-        {/* Mobile layer legend */}
-        <div className="mt-3 flex w-full justify-center md:hidden">
-          <LayerLegend flavor={current} align="center" compact />
         </div>
 
-        {/* Description */}
-        <div className="relative z-20 mt-4 max-w-xl px-4 text-center md:mt-6">
-          <AnimatePresence mode="wait">
-            <motion.p
-              key={current.id + "-desc"}
-              initial={{ y: 14, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: -14, opacity: 0 }}
-              transition={{ duration: 0.4 }}
-              className="text-balance text-sm leading-relaxed text-foreground/70 md:text-base"
-            >
-              {current.description}
-            </motion.p>
-          </AnimatePresence>
-        </div>
-
-        {/* Flavor cards */}
-        <div className="relative z-20 mt-6 grid w-full max-w-5xl grid-cols-2 gap-3 px-2 md:mt-10 md:grid-cols-4 md:gap-5">
-          {FLAVORS.map((f, i) => (
-            <FlavorCard
-              key={f.id}
-              flavor={f}
-              active={i === index}
-              onClick={() => select(i)}
-            />
-          ))}
-        </div>
-
-        {/* CTA + price */}
-        <div className="relative z-20 mt-6 mb-8 flex items-center gap-5 md:mt-8 md:mb-12">
+        {/* Name + description */}
+        <div className="relative z-20 mt-2 flex flex-col items-center px-6 text-center md:mt-4">
           <AnimatePresence mode="wait">
             <motion.div
-              key={current.id + "-price"}
+              key={current.id + "-name"}
               initial={{ y: 14, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -14, opacity: 0 }}
-              transition={{ duration: 0.4 }}
-              className="font-display text-2xl text-foreground md:text-3xl"
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              className="flex flex-col items-center"
             >
-              {current.price}
+              <span className="text-[10px] uppercase tracking-[0.4em] text-foreground/50">
+                Choose your matcha
+              </span>
+              <h1 className="font-display text-4xl tracking-tight text-foreground md:text-6xl">
+                {current.name}
+              </h1>
+              <p className="mt-2 max-w-md text-balance text-xs leading-relaxed text-foreground/65 md:text-sm">
+                {current.description}
+              </p>
             </motion.div>
           </AnimatePresence>
-          <button
-            className="rounded-full px-6 py-3 text-[11px] font-medium uppercase tracking-[0.25em] text-background transition hover:scale-[1.03]"
-            style={{
-              backgroundColor: current.accent,
-              boxShadow: `0 10px 40px -10px ${current.glow}`,
-            }}
-          >
-            Add to Order
-          </button>
+
+          <div className="mt-4 flex items-center gap-4">
+            <span className="font-display text-xl text-foreground md:text-2xl">
+              {current.price}
+            </span>
+            <button
+              className="rounded-full px-5 py-2.5 text-[10px] font-medium uppercase tracking-[0.25em] text-background transition hover:scale-[1.03]"
+              style={{
+                backgroundColor: current.accent,
+                boxShadow: `0 10px 40px -10px ${current.glow}`,
+              }}
+            >
+              Add to Order
+            </button>
+          </div>
         </div>
 
-        {/* Swipe hint */}
-        <div className="pointer-events-none mb-4 text-[10px] uppercase tracking-[0.4em] text-foreground/30 md:hidden">
-          ← swipe to switch →
+        {/* Hint */}
+        <div className="pointer-events-none mt-3 text-[10px] uppercase tracking-[0.4em] text-foreground/30">
+          ← swipe · tap a card →
         </div>
-      </main>
+      </motion.main>
     </div>
   );
 }
 
-function LayerLegend({
-  flavor,
-  align,
-  compact,
+/* ----------------------------- Orbit of cards ----------------------------- */
+
+function FlavorOrbit({
+  activeIndex,
+  count,
+  onSelect,
 }: {
-  flavor: Flavor;
-  align: "left" | "center";
-  compact?: boolean;
+  activeIndex: number;
+  count: number;
+  onSelect: (i: number) => void;
 }) {
-  // top of glass = last layer in list
-  const top = [...flavor.layers].reverse();
+  // Responsive radius
+  const [dims, setDims] = useState({ radiusX: 200, radiusY: 60, step: 32 });
+  useEffect(() => {
+    const compute = () => {
+      const w = window.innerWidth;
+      if (w < 480) setDims({ radiusX: 135, radiusY: 30, step: 28 });
+      else if (w < 768) setDims({ radiusX: 200, radiusY: 50, step: 30 });
+      else setDims({ radiusX: 280, radiusY: 70, step: 32 });
+    };
+    compute();
+    window.addEventListener("resize", compute);
+    return () => window.removeEventListener("resize", compute);
+  }, []);
+
   return (
-    <AnimatePresence mode="wait">
-      <motion.ul
-        key={flavor.id + "-layers"}
-        initial={{ opacity: 0, x: align === "left" ? -10 : 0, y: align === "center" ? 10 : 0 }}
-        animate={{ opacity: 1, x: 0, y: 0 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.4 }}
-        className={
-          compact
-            ? "flex flex-wrap items-center justify-center gap-x-3 gap-y-2"
-            : "flex flex-col gap-3"
-        }
-      >
-        {top.map((layer) => (
-          <li key={layer} className="flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-foreground/70">
-            <span
-              className="h-2.5 w-2.5 rounded-full ring-1 ring-white/20"
-              style={{ backgroundColor: LAYER_COLORS[layer] ?? "#888" }}
-            />
-            {LAYER_LABEL[layer] ?? layer}
-          </li>
-        ))}
-      </motion.ul>
-    </AnimatePresence>
+    <div className="absolute inset-0 z-10 flex items-center justify-center">
+      {FLAVORS.map((f, i) => {
+        // shortest signed offset from active
+        let off = i - activeIndex;
+        off = ((off + count / 2) % count + count) % count - count / 2;
+
+        const angle = off * dims.step; // degrees
+        const rad = (angle * Math.PI) / 180;
+        const x = Math.sin(rad) * dims.radiusX;
+        const y = -Math.cos(rad) * dims.radiusY; // arc above cup base
+        const isActive = off === 0;
+
+        return (
+          <OrbitCard
+            key={f.id}
+            flavor={f}
+            x={x}
+            y={y}
+            angle={angle}
+            isActive={isActive}
+            depth={Math.abs(off)}
+            onClick={() => onSelect(i)}
+          />
+        );
+      })}
+    </div>
   );
 }
 
-function FlavorCard({
+function OrbitCard({
   flavor,
-  active,
+  x,
+  y,
+  angle,
+  isActive,
+  depth,
   onClick,
 }: {
   flavor: Flavor;
-  active: boolean;
+  x: number;
+  y: number;
+  angle: number;
+  isActive: boolean;
+  depth: number;
   onClick: () => void;
 }) {
+  const ingredient = INGREDIENT[flavor.id];
   return (
     <motion.button
       onClick={onClick}
-      whileTap={{ scale: 0.96 }}
+      type="button"
+      initial={false}
       animate={{
-        scale: active ? 1.04 : 1,
+        x,
+        y,
+        rotate: angle * 0.55,
+        scale: isActive ? 1.1 : 1 - depth * 0.06,
+        opacity: 1,
       }}
-      transition={{ type: "spring", stiffness: 260, damping: 22 }}
-      className="group relative flex flex-col items-start gap-2 overflow-hidden rounded-2xl border p-3 text-left backdrop-blur-md transition-colors md:p-4"
+      transition={{ type: "spring", stiffness: 180, damping: 22, mass: 0.7 }}
+      whileTap={{ scale: isActive ? 1.08 : 0.95 }}
+      className="absolute flex h-[78px] w-[78px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-2xl border backdrop-blur-md md:h-[110px] md:w-[110px]"
       style={{
-        borderColor: active ? flavor.accent : "rgba(255,255,255,0.12)",
-        backgroundColor: active ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.03)",
-        boxShadow: active ? `0 14px 40px -14px ${flavor.glow}` : "none",
+        left: "50%",
+        top: "50%",
+        zIndex: 10 - depth,
+        borderColor: isActive ? flavor.accent : "rgba(255,255,255,0.18)",
+        background: isActive
+          ? `linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.06))`
+          : "linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.03))",
+        boxShadow: isActive
+          ? `0 18px 50px -15px ${flavor.glow}, 0 0 0 2px ${flavor.accent}30`
+          : "0 10px 30px -15px rgba(0,0,0,0.6)",
       }}
+      aria-label={flavor.name}
     >
-      {/* Mini layer bar */}
-      <div className="flex h-10 w-full overflow-hidden rounded-md ring-1 ring-white/10 md:h-12">
-        {[...flavor.layers].reverse().map((layer) => (
-          <div
-            key={layer}
-            className="flex-1"
-            style={{ backgroundColor: LAYER_COLORS[layer] ?? "#888" }}
-          />
-        ))}
-      </div>
-      <div className="flex w-full items-center justify-between">
-        <span
-          className="text-[11px] font-medium uppercase tracking-[0.2em] md:text-xs"
-          style={{ color: active ? flavor.accent : "rgba(255,255,255,0.85)" }}
-        >
-          {flavor.name}
-        </span>
-        <span className="text-[10px] text-foreground/50">{flavor.price}</span>
-      </div>
-      {active && (
+      <img
+        src={ingredient}
+        alt={flavor.name}
+        draggable={false}
+        className="drag-none h-[70%] w-[70%] object-contain"
+        style={{ filter: "drop-shadow(0 6px 10px rgba(0,0,0,0.35))" }}
+      />
+      {isActive && (
         <motion.span
-          layoutId="active-dot"
-          className="absolute right-3 top-3 h-1.5 w-1.5 rounded-full"
-          style={{ backgroundColor: flavor.accent, boxShadow: `0 0 12px ${flavor.glow}` }}
+          layoutId="orbit-active-dot"
+          className="absolute -bottom-1.5 h-1.5 w-1.5 rounded-full"
+          style={{
+            backgroundColor: flavor.accent,
+            boxShadow: `0 0 10px ${flavor.glow}`,
+          }}
         />
       )}
     </motion.button>

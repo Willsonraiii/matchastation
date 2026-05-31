@@ -10,7 +10,6 @@ import {
 } from "framer-motion";
 import { FLAVORS, type Flavor } from "@/data/flavors";
 
-const _unused: Flavor[] = [
   {
     id: "matcha",
     name: "Matcha",

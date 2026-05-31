@@ -343,6 +343,9 @@ function OrbitCard({
   isActive,
   depth,
   onClick,
+  parallaxX,
+  parallaxY,
+  sideSign,
 }: {
   flavor: Flavor;
   x: number;
@@ -351,8 +354,16 @@ function OrbitCard({
   isActive: boolean;
   depth: number;
   onClick: () => void;
+  parallaxX: MotionValue<number>;
+  parallaxY: MotionValue<number>;
+  sideSign: number;
 }) {
   const ingredient = INGREDIENT[flavor.id];
+  // Per-card parallax — outer cards drift more; mirror across the active center
+  const driftMag = isActive ? 6 : 12 + depth * 4;
+  const cardPx = useTransform(parallaxX, [-1, 1], [-driftMag * sideSign * 0.4 - driftMag, driftMag + driftMag * sideSign * 0.4]);
+  const cardPy = useTransform(parallaxY, [-1, 1], [-driftMag * 0.7, driftMag * 0.7]);
+
   return (
     <motion.button
       onClick={onClick}
@@ -367,6 +378,7 @@ function OrbitCard({
       }}
       transition={{ type: "spring", stiffness: 180, damping: 22, mass: 0.7 }}
       whileTap={{ scale: isActive ? 1.08 : 0.95 }}
+      whileHover={{ scale: isActive ? 1.12 : 1 - depth * 0.06 + 0.05 }}
       className="absolute flex h-[78px] w-[78px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-2xl border backdrop-blur-md md:h-[110px] md:w-[110px]"
       style={{
         left: "50%",
@@ -379,16 +391,23 @@ function OrbitCard({
         boxShadow: isActive
           ? `0 18px 50px -15px ${flavor.glow}, 0 0 0 2px ${flavor.accent}30`
           : "0 10px 30px -15px rgba(0,0,0,0.6)",
+        transformStyle: "preserve-3d",
       }}
       aria-label={flavor.name}
     >
-      <img
-        src={ingredient}
-        alt={flavor.name}
-        draggable={false}
-        className="drag-none h-[70%] w-[70%] object-contain"
-        style={{ filter: "drop-shadow(0 6px 10px rgba(0,0,0,0.35))" }}
-      />
+      {/* Inner parallax wrapper — drifts independent of orbit transform */}
+      <motion.div
+        className="flex h-full w-full items-center justify-center"
+        style={{ x: cardPx, y: cardPy }}
+      >
+        <img
+          src={ingredient}
+          alt={flavor.name}
+          draggable={false}
+          className="drag-none h-[70%] w-[70%] object-contain"
+          style={{ filter: "drop-shadow(0 6px 10px rgba(0,0,0,0.35))" }}
+        />
+      </motion.div>
       {isActive && (
         <motion.span
           layoutId="orbit-active-dot"
@@ -402,3 +421,4 @@ function OrbitCard({
     </motion.button>
   );
 }
+

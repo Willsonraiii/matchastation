@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   AnimatePresence,
   motion,
@@ -23,7 +23,31 @@ const INGREDIENT: Record<string, string> = {
 
 const mod = (n: number, m: number) => ((n % m) + m) % m;
 
+function preloadImages(srcs: string[]): Promise<void> {
+  return Promise.all(
+    srcs.map(
+      (src) =>
+        new Promise<void>((resolve) => {
+          const img = new Image();
+          img.onload = () => resolve();
+          img.onerror = () => resolve(); // don't block on missing images
+          img.src = src;
+        })
+    )
+  ).then(() => undefined);
+}
+
 export default function BeverageShowcase() {
+  const [ready, setReady] = useState(false);
+
+  // Preload all images before revealing the showcase
+  useEffect(() => {
+    const images = FLAVORS.map((f) => f.image).concat(
+      Object.values(INGREDIENT)
+    );
+    preloadImages(images).then(() => setReady(true));
+  }, []);
+
   const [index, setIndex] = useState(0);
   const count = FLAVORS.length;
   const current = FLAVORS[index];
@@ -90,11 +114,49 @@ export default function BeverageShowcase() {
 
 
   return (
-    <div
-      ref={stageRef}
-      className="relative min-h-screen w-full overflow-hidden bg-background"
-      style={{ perspective: 1400 }}
-    >
+    <>
+      {/* Loading overlay — visible until images are preloaded */}
+      <AnimatePresence>
+        {!ready && (
+          <motion.div
+            key="loader"
+            className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#07140d]"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 12, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              className="flex flex-col items-center"
+            >
+              <span className="font-display text-2xl tracking-[0.35em] text-foreground/90 md:text-3xl">
+                MATCHA<span className="opacity-40"> · </span>STATION
+              </span>
+              <motion.div
+                className="mt-5 h-[2px] w-16 rounded-full bg-foreground/20 overflow-hidden"
+              >
+                <motion.div
+                  className="h-full w-full bg-foreground/70"
+                  initial={{ x: "-100%" }}
+                  animate={{ x: "0%" }}
+                  transition={{ duration: 1.8, ease: [0.22, 1, 0.36, 1] }}
+                />
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <motion.div
+        ref={stageRef}
+        className="relative min-h-screen w-full overflow-hidden bg-background"
+        style={{ perspective: 1400 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: ready ? 1 : 0 }}
+        transition={{ duration: 0.45, ease: "easeOut" }}
+      >
       {/* Atmospheric background (deepest layer, drifts slowest) */}
       <AnimatePresence mode="sync">
         <motion.div
@@ -265,7 +327,8 @@ export default function BeverageShowcase() {
           ← swipe · tap a card →
         </div>
       </motion.main>
-    </div>
+    </motion.div>
+    </>
   );
 }
 

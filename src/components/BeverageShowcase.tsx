@@ -126,7 +126,7 @@ export default function BeverageShowcase() {
 
       {/* Swipe surface — full main stage */}
       <motion.main
-        className="relative z-10 flex h-[calc(100vh-72px)] w-full touch-pan-y select-none flex-col items-center justify-center"
+        className="relative z-10 flex h-[calc(100dvh-72px)] w-full touch-pan-y select-none flex-col items-center justify-between pb-4 pt-2 md:justify-center md:pb-0 md:pt-0"
         drag="x"
         dragElastic={0.18}
         dragConstraints={{ left: 0, right: 0 }}
@@ -135,7 +135,7 @@ export default function BeverageShowcase() {
       >
         {/* Stage center */}
         <motion.div
-          className="relative flex h-[58vh] w-full max-w-2xl items-center justify-center md:h-[62vh]"
+          className="relative flex h-[46vh] min-h-[320px] w-full max-w-2xl items-center justify-center md:h-[62vh]"
           style={{ transformStyle: "preserve-3d" }}
         >
           {/* Orbiting flavor cards (mid layer) */}
@@ -199,7 +199,7 @@ export default function BeverageShowcase() {
                   opacity: { duration: 0.45 },
                   scale: { duration: 0.45 },
                 }}
-                className="drag-none h-[46vh] max-h-[520px] w-auto object-contain md:h-[58vh]"
+                className="drag-none h-[36vh] max-h-[520px] w-auto object-contain md:h-[58vh]"
                 style={{
                   filter: `drop-shadow(0 40px 50px rgba(0,0,0,0.6)) drop-shadow(0 0 28px ${current.glow})`,
                 }}

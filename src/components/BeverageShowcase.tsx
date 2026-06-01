@@ -327,7 +327,8 @@ export default function BeverageShowcase() {
           ← swipe · tap a card →
         </div>
       </motion.main>
-    </div>
+    </motion.div>
+    </>
   );
 }
 

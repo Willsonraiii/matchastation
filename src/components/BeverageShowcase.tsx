@@ -36,6 +36,18 @@ function preloadImages(srcs: string[]): Promise<void> {
     )
   ).then(() => undefined);
 }
+
+export default function BeverageShowcase() {
+  const [ready, setReady] = useState(false);
+
+  // Preload all images before revealing the showcase
+  useEffect(() => {
+    const images = FLAVORS.map((f) => f.image).concat(
+      Object.values(INGREDIENT)
+    );
+    preloadImages(images).then(() => setReady(true));
+  }, []);
+
   const [index, setIndex] = useState(0);
   const count = FLAVORS.length;
   const current = FLAVORS[index];

@@ -23,7 +23,19 @@ const INGREDIENT: Record<string, string> = {
 
 const mod = (n: number, m: number) => ((n % m) + m) % m;
 
-export default function BeverageShowcase() {
+function preloadImages(srcs: string[]): Promise<void> {
+  return Promise.all(
+    srcs.map(
+      (src) =>
+        new Promise<void>((resolve) => {
+          const img = new Image();
+          img.onload = () => resolve();
+          img.onerror = () => resolve(); // don't block on missing images
+          img.src = src;
+        })
+    )
+  ).then(() => undefined);
+}
   const [index, setIndex] = useState(0);
   const count = FLAVORS.length;
   const current = FLAVORS[index];

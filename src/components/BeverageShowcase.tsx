@@ -199,7 +199,7 @@ export default function BeverageShowcase() {
                   opacity: { duration: 0.45 },
                   scale: { duration: 0.45 },
                 }}
-                className="drag-none h-[46vh] max-h-[520px] w-auto object-contain md:h-[58vh]"
+                className="drag-none h-[36vh] max-h-[520px] w-auto object-contain md:h-[58vh]"
                 style={{
                   filter: `drop-shadow(0 40px 50px rgba(0,0,0,0.6)) drop-shadow(0 0 28px ${current.glow})`,
                 }}
